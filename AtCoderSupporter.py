@@ -299,7 +299,6 @@ def test(testcases):
 
 
 def load_src_code():
-    src_path = load_src_path()
     try:
         with open(load_src_path(), 'r') as f:
             return f.read()
