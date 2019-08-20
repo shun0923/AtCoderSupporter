@@ -14,16 +14,16 @@
 
 |コマンド（省略形）|内容|
 |-------|----|
-|test (t)|ビルドして入出力例でテスト、全て通ればそのまま提出も可能|
+|test (t) [contest_name] [task_index]|ビルドして入出力例でテスト、全て通ればそのまま提出も可能　　※contest_nameのみは不可|
 |submit (s)|テストせずに提出|
 |run (r)|ビルドして実行|
 |exit (e)|終了|
-|その他|コンテスト名の設定（前回の起動時と同じなら省略可）|
+|[contest_name]|コンテスト名の設定（前回の起動時と同じなら省略可）|
 
-※
-「コンテスト名」とは問題URLに含まれる`https://atcoder.jp/contests/〇〇`の部分です。
+※1 [contest_name]や[task_number]などのオプションは、前回の起動時と同じなら省略できます。
+
+※2 [contest_name]とは問題URLに含まれる`https://atcoder.jp/contests/〇〇`の部分、[task_number]はアルファベットまたは数字で指定してください。
 企業コンにも対応しています。
-ex. abc100, kuronekoyamato-contest2019
 
 ### その他のコマンド
 
