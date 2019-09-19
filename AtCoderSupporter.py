@@ -8,6 +8,7 @@ import pickle
 import json
 import re
 import subprocess
+from getpass import getpass
 
 SAVE_DIR = "./save"
 ACCOUNT_JSON_PATH = "./save/account.json"
@@ -62,10 +63,8 @@ def get_src_ext():
 
 
 def rcv_entered_account_info():
-    print("Enter your user name.")
-    username = input()
-    print("Enter your password.")
-    password = input()
+    username = input("Enter your username: ")
+    password = getpass("Enter your password: ")
     account_info = {
         "username": username,
         "password": password
