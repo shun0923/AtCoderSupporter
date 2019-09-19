@@ -1,5 +1,5 @@
 ---
-name: バグ報告
+name: Bug report
 about: バグ報告
 title: ''
 labels: ''
