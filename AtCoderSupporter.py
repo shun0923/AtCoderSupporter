@@ -282,7 +282,7 @@ def test(testcases):
         os.remove(temp_path)
 
         output = result.stdout
-        if(testcase_output.split() == output.decode().split()):
+        if(testcase_output == output.decode()):
             print("AC!")
         else:
             print("WA")
