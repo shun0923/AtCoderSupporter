@@ -254,7 +254,7 @@ def get_build_command():
 
 def build():
     print("Building ...")
-    result = subprocess.run(get_build_command(), shell=True, cwd=get_src_dir(), stderr=subprocess.PIPE)
+    result = subprocess.run(get_build_command(), cwd=get_src_dir(), stderr=subprocess.PIPE)
     error_message = result.stderr.decode('cp932')
     if len(error_message) > 0:
         print("Compilation error : ")
@@ -277,7 +277,7 @@ def get_run_command():
 def run():
     if build():
         print("Running!")
-        subprocess.run(get_run_command(), shell=True, cwd=get_src_dir())
+        subprocess.run(get_run_command(), cwd=get_src_dir())
 
 
 def test(testcases):
