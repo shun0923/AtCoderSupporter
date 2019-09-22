@@ -236,14 +236,27 @@ def load_testcases(contest_name, task_number):
         return dict()
 
 
-def build():
+def get_build_command():
     ext = get_src_ext()
     if ext == 'java':
-        print("Building ...")
-        subprocess.run(['javac', get_src_name()], shell=True, cwd=get_src_dir())
+        return ['javac', get_src_name()]
     elif ext == 'cpp':
-        print("Building ...")
-        subprocess.run(['g++', get_src_name(), '-o', f"{get_src_name_without_ext()}.exe"], shell=True, cwd=get_src_dir())
+        return ['g++', get_src_name(), '-o', f"{get_src_name_without_ext()}.exe"]
+    elif ext == 'py':
+        return ['python', '-m', 'py_compile', get_src_name()] 
+    else:
+        return []
+
+
+def build():
+    print("Building ...")
+    result = subprocess.run(get_build_command(), shell=True, cwd=get_src_dir(), stderr=subprocess.PIPE)
+    error_message = result.stderr.decode('cp932')
+    if len(error_message) > 0:
+        print("Compilation error : ")
+        print(error_message)
+    return not error_message
+
 
 def get_run_command():
     ext = get_src_ext()
@@ -258,13 +271,15 @@ def get_run_command():
 
 
 def run():
-    build()
-    print("Running!")
-    subprocess.run(get_run_command(), shell=True, cwd=get_src_dir())
+    if build():
+        print("Running!")
+        subprocess.run(get_run_command(), shell=True, cwd=get_src_dir())
 
 
 def test(testcases):
-    build()
+    if not build():
+        print("----- CE -----")
+        return False
 
     is_all_ac = True
     for key, testcase in testcases.items():
@@ -294,6 +309,8 @@ def test(testcases):
             print(testcase_output)
             is_all_ac = False
 
+    if not is_all_ac:
+        print("----- WA -----")
     return is_all_ac
 
 
@@ -423,8 +440,6 @@ if __name__ == "__main__":
                         ans = input()
                         if(ans == 'y'):
                             submit(contest_name, task_number)
-                    else:
-                        print("----- WA -----")
 
                 elif re.fullmatch(r'submit', command[0]):
                     submit(contest_name, task_number)
