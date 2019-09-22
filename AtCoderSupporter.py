@@ -9,6 +9,7 @@ import json
 import re
 import subprocess
 from getpass import getpass
+import time
 
 SAVE_DIR = "./save"
 ACCOUNT_JSON_PATH = "./save/account.json"
@@ -301,21 +302,27 @@ def test(testcases):
         with open(temp_path, 'w') as f:
             f.write(testcase_input)
         with open(temp_path, 'r') as f:
+            start_time = time.time()
             try:
-                result = subprocess.run(get_run_command(), cwd=get_src_dir(), stdin=f, stdout=subprocess.PIPE, timeout=time_limit)
+                result = subprocess.run(get_run_command(), cwd=get_src_dir(), stdin=f, stdout=subprocess.PIPE, timeout=time_limit * 2)
             except subprocess.TimeoutExpired:
                 status = "TLE"
         os.remove(temp_path)
 
+        run_time = round((time.time() - start_time) * 1000)
+
         if status == "TLE":
             print("TLE")
+            is_all_ac = False
+        elif run_time >= time_limit * 1000:
+            print(f"TLE ({run_time} ms)")
             is_all_ac = False
         else:
             output = result.stdout
             if testcase_output.split() == output.decode().split():
-                print("AC!")
+                print(f"AC! ({run_time} ms)")
             else:
-                print("WA")
+                print(f"WA ({run_time} ms)")
                 print("----input-----")
                 print(testcase_input)
                 print("----result----")
