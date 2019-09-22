@@ -194,7 +194,7 @@ def download_all_testcases(contest_name, redownload=False):
             testcases_dict = dict()
             for (i, task_url) in enumerate(task_url_list):
                 testcases_dict[f"task {i}"] = download_testcases(task_url)
-                testcases_dict[f"task {i}"]['info'] = {"time limit" : time_limit_list[i]}
+                testcases_dict[f"task {i}"]['info'] = {"time limit": time_limit_list[i]}
 
             with open(testcases_path, 'w') as f:
                 json.dump(testcases_dict, f, indent=4)
@@ -247,7 +247,7 @@ def get_build_command():
     elif ext == 'cpp':
         return ['g++', get_src_name(), '-o', f"{get_src_name_without_ext()}.exe"]
     elif ext == 'py':
-        return ['python', '-m', 'py_compile', get_src_name()] 
+        return ['python', '-m', 'py_compile', get_src_name()]
     else:
         return []
 
