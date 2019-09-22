@@ -215,7 +215,9 @@ def download_testcases(task_url):
         print(f"Failed in downloading testcases for {task_full_name} ...")
         return dict()
     else:
-        soup = BeautifulSoup(r.text, 'lxml').find('span', class_='lang-ja')
+        soup = BeautifulSoup(r.text, 'lxml')
+        soup_ja = soup.find('span', class_='lang-ja')
+        soup = soup_ja if soup_ja else soup
         pres = soup.find_all('pre')
         testcases = [pre.string for pre in pres if pre.string]
 
