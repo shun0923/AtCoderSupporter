@@ -155,7 +155,7 @@ def correct_contest_name(crt_contest_name, new_contest_name):
 
 def convert_to_task_number(task_name):
     if task_name.isdecimal():
-        return int(task_name)
+        return int(task_name) - 1
     elif len(task_name) == 1:
         return ord(task_name.lower()) - ord('a')
     else:
@@ -194,7 +194,7 @@ def download_all_testcases(contest_name, redownload=False):
             testcases_dict = dict()
             for (i, task_url) in enumerate(task_url_list):
                 testcases_dict[f"task {i}"] = download_testcases(task_url)
-                testcases_dict[f"task {i}"]['info'] = {"time limit" : time_limit_list[i]}
+                testcases_dict[f"task {i}"]['info'] = {"time limit": time_limit_list[i]}
 
             with open(testcases_path, 'w') as f:
                 json.dump(testcases_dict, f, indent=4)
@@ -215,9 +215,8 @@ def download_testcases(task_url):
         return dict()
     else:
         soup = BeautifulSoup(r.text, 'lxml')
-        pres = soup.find_all('pre')
-        unduplicated_pres = pres[:len(pres) // 2] if pres[:len(pres) // 2] == pres[- len(pres) // 2:] else pres
-        testcases = [pre.string for pre in unduplicated_pres if pre.string]
+        pres = soup.find('span', class_='lang-ja').find_all('pre')
+        testcases = [pre.string for pre in pres if pre.string]
 
         input_list = testcases[::2]
         output_list = testcases[1::2]
@@ -225,7 +224,7 @@ def download_testcases(task_url):
         testcases = dict()
         for i, (testcase_input, testcase_output) in enumerate(zip(input_list, output_list)):
             testcase = {"input": testcase_input, "output": testcase_output}
-            testcases[f"testcase {i}"] = testcase
+            testcases[f"testcase {i + 1}"] = testcase
 
         return testcases
 
@@ -247,14 +246,14 @@ def get_build_command():
     elif ext == 'cpp':
         return ['g++', get_src_name(), '-o', f"{get_src_name_without_ext()}.exe"]
     elif ext == 'py':
-        return ['python', '-m', 'py_compile', get_src_name()] 
+        return ['python', '-m', 'py_compile', get_src_name()]
     else:
         return []
 
 
 def build():
     print("Building ...")
-    result = subprocess.run(get_build_command(), shell=True, cwd=get_src_dir(), stderr=subprocess.PIPE)
+    result = subprocess.run(get_build_command(), cwd=get_src_dir(), stderr=subprocess.PIPE)
     error_message = result.stderr.decode('cp932')
     if len(error_message) > 0:
         print("Compilation error : ")
@@ -277,7 +276,7 @@ def get_run_command():
 def run():
     if build():
         print("Running!")
-        subprocess.run(get_run_command(), shell=True, cwd=get_src_dir())
+        subprocess.run(get_run_command(), cwd=get_src_dir())
 
 
 def test(testcases):
@@ -287,39 +286,43 @@ def test(testcases):
 
     is_all_ac = True
     time_limit = testcases["info"]["time limit"]
-    temp_path = "temp.txt"
     for key, testcase in testcases.items():
         if key == "info":
             continue
+
+        status = ""
         print("-------------------------------")
         print(f"{key} : ", end='')
 
         testcase_input = testcase["input"]
         testcase_output = testcase["output"]
 
+        temp_path = "temp.txt"
         with open(temp_path, 'w') as f:
             f.write(testcase_input)
         with open(temp_path, 'r') as f:
             try:
                 result = subprocess.run(get_run_command(), cwd=get_src_dir(), stdin=f, stdout=subprocess.PIPE, timeout=time_limit)
             except subprocess.TimeoutExpired:
-                print("TLE")
-                is_all_ac = False
-                continue
+                status = "TLE"
+        os.remove(temp_path)
 
-        output = result.stdout
-        if(testcase_output.split() == output.decode().split()):
-            print("AC!")
-        else:
-            print("WA")
-            print("----input-----")
-            print(testcase_input)
-            print("----result----")
-            print(output.decode())
-            print("---expected---")
-            print(testcase_output)
+        if status == "TLE":
+            print("TLE")
             is_all_ac = False
-    os.remove(temp_path)
+        else:
+            output = result.stdout
+            if testcase_output.split() == output.decode().split():
+                print("AC!")
+            else:
+                print("WA")
+                print("----input-----")
+                print(testcase_input)
+                print("----result----")
+                print(output.decode())
+                print("---expected---")
+                print(testcase_output)
+                is_all_ac = False
 
     if not is_all_ac:
         print("----- WA -----")
