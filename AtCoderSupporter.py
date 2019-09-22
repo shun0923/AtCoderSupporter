@@ -188,9 +188,13 @@ def download_all_testcases(contest_name, redownload=False):
             task_url_list = [urljoin(BASE_URL, href.get('href')) for href in hrefs]
             task_url_list = list(dict.fromkeys(task_url_list))
 
+            secs = soup.find_all('td', string=re.compile(".*sec"))
+            time_limit_list = [float(sec.text.replace(" sec", "")) for sec in secs]
+
             testcases_dict = dict()
             for (i, task_url) in enumerate(task_url_list):
                 testcases_dict[f"task {i}"] = download_testcases(task_url)
+                testcases_dict[f"task {i}"]['info'] = {"time limit" : time_limit_list[i]}
 
             with open(testcases_path, 'w') as f:
                 json.dump(testcases_dict, f, indent=4)
@@ -282,19 +286,26 @@ def test(testcases):
         return False
 
     is_all_ac = True
+    time_limit = testcases["info"]["time limit"]
+    temp_path = "temp.txt"
     for key, testcase in testcases.items():
+        if key == "info":
+            continue
         print("-------------------------------")
         print(f"{key} : ", end='')
 
         testcase_input = testcase["input"]
         testcase_output = testcase["output"]
 
-        temp_path = "temp.txt"
         with open(temp_path, 'w') as f:
             f.write(testcase_input)
         with open(temp_path, 'r') as f:
-            result = subprocess.run(get_run_command(), shell=True, cwd=get_src_dir(), stdin=f, stdout=subprocess.PIPE)
-        os.remove(temp_path)
+            try:
+                result = subprocess.run(get_run_command(), cwd=get_src_dir(), stdin=f, stdout=subprocess.PIPE, timeout=time_limit)
+            except subprocess.TimeoutExpired:
+                print("TLE")
+                is_all_ac = False
+                continue
 
         output = result.stdout
         if(testcase_output.split() == output.decode().split()):
@@ -308,6 +319,7 @@ def test(testcases):
             print("---expected---")
             print(testcase_output)
             is_all_ac = False
+    os.remove(temp_path)
 
     if not is_all_ac:
         print("----- WA -----")
