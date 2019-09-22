@@ -286,39 +286,43 @@ def test(testcases):
 
     is_all_ac = True
     time_limit = testcases["info"]["time limit"]
-    temp_path = "temp.txt"
     for key, testcase in testcases.items():
         if key == "info":
             continue
+
+        status = ""
         print("-------------------------------")
         print(f"{key} : ", end='')
 
         testcase_input = testcase["input"]
         testcase_output = testcase["output"]
 
+        temp_path = "temp.txt"
         with open(temp_path, 'w') as f:
             f.write(testcase_input)
         with open(temp_path, 'r') as f:
             try:
                 result = subprocess.run(get_run_command(), cwd=get_src_dir(), stdin=f, stdout=subprocess.PIPE, timeout=time_limit)
             except subprocess.TimeoutExpired:
-                print("TLE")
-                is_all_ac = False
-                continue
+                status = "TLE"
+        os.remove(temp_path)
 
-        output = result.stdout
-        if(testcase_output.split() == output.decode().split()):
-            print("AC!")
-        else:
-            print("WA")
-            print("----input-----")
-            print(testcase_input)
-            print("----result----")
-            print(output.decode())
-            print("---expected---")
-            print(testcase_output)
+        if status == "TLE":
+            print("TLE")
             is_all_ac = False
-    os.remove(temp_path)
+        else:
+            output = result.stdout
+            if testcase_output.split() == output.decode().split():
+                print("AC!")
+            else:
+                print("WA")
+                print("----input-----")
+                print(testcase_input)
+                print("----result----")
+                print(output.decode())
+                print("---expected---")
+                print(testcase_output)
+                is_all_ac = False
 
     if not is_all_ac:
         print("----- WA -----")
