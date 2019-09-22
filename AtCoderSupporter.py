@@ -195,7 +195,7 @@ def download_all_testcases(contest_name, redownload=False):
             testcases_dict = dict()
             for (i, task_url) in enumerate(task_url_list):
                 testcases_dict[f"task {i}"] = download_testcases(task_url)
-                testcases_dict[f"task {i}"]['info'] = {"time limit": time_limit_list[i]}
+                testcases_dict[f"task {i}"]['info']["time limit"] = time_limit_list[i]
 
             with open(testcases_path, 'w') as f:
                 json.dump(testcases_dict, f, indent=4)
@@ -216,13 +216,18 @@ def download_testcases(task_url):
         return dict()
     else:
         soup = BeautifulSoup(r.text, 'lxml')
-        pres = soup.find('span', class_='lang-ja').find_all('pre')
+        soup_ja = soup.find('span', class_='lang-ja')
+        soup = soup_ja if soup_ja else soup
+        pres = soup.find_all('pre')
         testcases = [pre.string for pre in pres if pre.string]
 
         input_list = testcases[::2]
         output_list = testcases[1::2]
 
         testcases = dict()
+        testcases['info'] = dict()
+        testcases['info']["contains float"] = bool(soup.find(string=re.compile('小数')))
+
         for i, (testcase_input, testcase_output) in enumerate(zip(input_list, output_list)):
             testcase = {"input": testcase_input, "output": testcase_output}
             testcases[f"testcase {i + 1}"] = testcase
@@ -280,6 +285,14 @@ def run():
         subprocess.run(get_run_command(), cwd=get_src_dir())
 
 
+def format_output(output):
+    return [line.strip().split() for line in output.splitlines() if line]
+
+
+def equals(response, answer):
+    return abs(response - answer) <= 1e-5 or abs((response  - answer) / answer) <= 1e-5
+
+
 def test(testcases):
     if not build():
         print("----- CE -----")
@@ -318,15 +331,30 @@ def test(testcases):
             print(f"TLE ({run_time} ms)")
             is_all_ac = False
         else:
-            output = result.stdout
-            if testcase_output.split() == output.decode().split():
+            output = result.stdout.decode()
+            answer = format_output(testcase_output)
+            response = format_output(output)
+            status = "AC" if answer == response else "WA"
+
+            if testcases["info"]["contains float"]:
+                status = "AC"
+                if len(response) != len(answer):
+                    status = "WA"
+                for line_response, line_answer in zip(response, answer):
+                    if len(line_response) != len(line_answer):
+                        status = "WA"
+                    for element_response, element_answer in zip(line_response, line_answer):
+                        if not equals(float(element_response), float(element_answer)):
+                            status = "WA"
+
+            if status == "AC":
                 print(f"AC! ({run_time} ms)")
             else:
                 print(f"WA ({run_time} ms)")
                 print("----input-----")
                 print(testcase_input)
                 print("----result----")
-                print(output.decode())
+                print(output)
                 print("---expected---")
                 print(testcase_output)
                 is_all_ac = False
