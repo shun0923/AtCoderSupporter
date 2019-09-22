@@ -155,7 +155,7 @@ def correct_contest_name(crt_contest_name, new_contest_name):
 
 def convert_to_task_number(task_name):
     if task_name.isdecimal():
-        return int(task_name)
+        return int(task_name) - 1
     elif len(task_name) == 1:
         return ord(task_name.lower()) - ord('a')
     else:
@@ -225,7 +225,7 @@ def download_testcases(task_url):
         testcases = dict()
         for i, (testcase_input, testcase_output) in enumerate(zip(input_list, output_list)):
             testcase = {"input": testcase_input, "output": testcase_output}
-            testcases[f"testcase {i}"] = testcase
+            testcases[f"testcase {i + 1}"] = testcase
 
         return testcases
 
