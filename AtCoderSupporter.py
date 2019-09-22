@@ -293,7 +293,12 @@ def test(testcases):
         with open(temp_path, 'w') as f:
             f.write(testcase_input)
         with open(temp_path, 'r') as f:
-            result = subprocess.run(get_run_command(), shell=True, cwd=get_src_dir(), stdin=f, stdout=subprocess.PIPE)
+            try:
+                result = subprocess.run(get_run_command(), cwd=get_src_dir(), stdin=f, stdout=subprocess.PIPE, timeout=2)
+            except subprocess.TimeoutExpired:
+                print("TLE")
+                is_all_ac = False
+                continue
         os.remove(temp_path)
 
         output = result.stdout
