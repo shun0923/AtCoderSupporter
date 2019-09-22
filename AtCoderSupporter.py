@@ -195,7 +195,7 @@ def download_all_testcases(contest_name, redownload=False):
             testcases_dict = dict()
             for (i, task_url) in enumerate(task_url_list):
                 testcases_dict[f"task {i}"] = download_testcases(task_url)
-                testcases_dict[f"task {i}"]['info'] = {"time limit": time_limit_list[i]}
+                testcases_dict[f"task {i}"]['info']["time limit"] = time_limit_list[i]
 
             with open(testcases_path, 'w') as f:
                 json.dump(testcases_dict, f, indent=4)
@@ -215,14 +215,17 @@ def download_testcases(task_url):
         print(f"Failed in downloading testcases for {task_full_name} ...")
         return dict()
     else:
-        soup = BeautifulSoup(r.text, 'lxml')
-        pres = soup.find('span', class_='lang-ja').find_all('pre')
+        soup = BeautifulSoup(r.text, 'lxml').find('span', class_='lang-ja')
+        pres = soup.find_all('pre')
         testcases = [pre.string for pre in pres if pre.string]
 
         input_list = testcases[::2]
         output_list = testcases[1::2]
 
         testcases = dict()
+        testcases['info'] = dict()
+        testcases['info']["contains float"] = bool(soup.find(string=re.compile('小数')))
+
         for i, (testcase_input, testcase_output) in enumerate(zip(input_list, output_list)):
             testcase = {"input": testcase_input, "output": testcase_output}
             testcases[f"testcase {i + 1}"] = testcase
