@@ -215,9 +215,8 @@ def download_testcases(task_url):
         return dict()
     else:
         soup = BeautifulSoup(r.text, 'lxml')
-        pres = soup.find_all('pre')
-        unduplicated_pres = pres[:len(pres) // 2] if pres[:len(pres) // 2] == pres[- len(pres) // 2:] else pres
-        testcases = [pre.string for pre in unduplicated_pres if pre.string]
+        pres = soup.find('span', class_='lang-ja').find_all('pre')
+        testcases = [pre.string for pre in pres if pre.string]
 
         input_list = testcases[::2]
         output_list = testcases[1::2]
