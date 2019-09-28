@@ -205,7 +205,7 @@ def download_all_testcases(contest_name, redownload=False):
             task_url_list = [urljoin(BASE_URL, href) for href in hrefs]
             task_url_list = list(dict.fromkeys(task_url_list))
 
-            sec_tds = soup.find_all('td', string=re.compile(".*sec"))
+            sec_tds = soup.find_all('td', string=re.compile("sec"))
             secs = [sec.text for sec in sec_tds]
             time_limit_list = [float(sec.replace(" sec", "")) for sec in secs]
 
