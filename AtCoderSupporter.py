@@ -11,10 +11,10 @@ from getpass import getpass
 import time
 
 SAVE_DIR = "./save"
-ACCOUNT_JSON_PATH = "./save/account.json"
-SRC_PATH_TXT_PATH = "./save/src_path.txt"
-SESSION_PICKLE_PATH = "./save/session.pickle"
-TESTCASES_DIR = "./save/testcases"
+ACCOUNT_JSON_PATH = os.path.join(SAVE_DIR, "account.json")
+SRC_PATH_TXT_PATH = os.path.join(SAVE_DIR, "src_path.txt")
+SESSION_PICKLE_PATH = os.path.join(SAVE_DIR, "session.pickle")
+TESTCASES_DIR = os.path.join(SAVE_DIR, "testcases")
 
 BASE_URL = "https://atcoder.jp/"
 LOGIN_URL = urljoin(BASE_URL, "login")
