@@ -200,12 +200,12 @@ def download_all_testcases(contest_name, redownload=False):
         else:
             soup = BeautifulSoup(r.text, 'lxml')
             anchors = soup.find_all('a',
-                                    href=re.compile("/contests/.*/tasks/.*"))
+                                    href=re.compile(r"/contests/.*/tasks/.*"))
             hrefs = [href.get('href') for href in anchors]
             task_url_list = [urljoin(BASE_URL, href) for href in hrefs]
             task_url_list = list(dict.fromkeys(task_url_list))
 
-            sec_tds = soup.find_all('td', string=re.compile(' sec'))
+            sec_tds = soup.find_all('td', string=re.compile(r' sec'))
             secs = [sec.text for sec in sec_tds]
             time_limit_list = [float(sec.replace(' sec', '')) for sec in secs]
 
