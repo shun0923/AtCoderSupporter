@@ -305,10 +305,26 @@ def get_run_command():
         return []
 
 
+def omit_error_message(error_message):
+    return (error_message if len(error_message) <= 1000
+            else error_message[:1000] + " ...")
+
+
 def run():
     if build():
         print("Running!")
-        subprocess.run(get_run_command(), cwd=get_src_dir())
+        result = subprocess.run(get_run_command(),
+                                cwd=get_src_dir(),
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        output = result.stdout.decode('cp932')
+        if output:
+            print("OUTPUT : ")
+            print(output)
+        error_message = result.stderr.decode('cp932')
+        if error_message:
+            print("ERROR : ")
+            print(omit_error_message(error_message))
 
 
 def format_output(output):
@@ -364,6 +380,7 @@ def test(testcases):
                                         cwd=get_src_dir(),
                                         stdin=f,
                                         stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE,
                                         timeout=time_limit * 2)
             except subprocess.TimeoutExpired:
                 status = 'TLE'
@@ -393,6 +410,11 @@ def test(testcases):
                 print("---expected---")
                 print(testcase_output)
                 is_all_ac = False
+
+        error_message = result.stderr.decode('cp932')
+        if error_message:
+            print("ERROR : ")
+            print(omit_error_message(error_message))
 
     if not is_all_ac:
         print("----- WA -----")
