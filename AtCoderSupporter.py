@@ -3,7 +3,6 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-import lxml
 import pickle
 import json
 import re
@@ -32,7 +31,8 @@ def save_src_path(src_path=''):
     if os.path.isfile(src_path):
         with open(SRC_PATH_TXT_PATH, 'w') as f:
             f.write(src_path)
-        print(f"Successfully saved a path to source code in {extract_name(SRC_PATH_TXT_PATH)}.")
+        print("Successfully saved a path to source code in "
+              f"{extract_name(SRC_PATH_TXT_PATH)}.")
     else:
         print("The path is invalid ...")
         save_src_path()
@@ -141,6 +141,20 @@ def login(reset_account=False):
         login(True)
 
 
+def check(command):
+    check_dict = {'src_path': False, 'account': False}
+    if len(command) == 1:
+        check_dict['src_path'] = True
+        check_dict['account'] = True
+    elif len(command) >= 2:
+        check_dict[command[1]] = True
+
+    if check_dict['src_path']:
+        print(f"Path to source code : {load_src_path()}")
+    if check_dict['account']:
+        print(f"Account info : {load_account_info()}")
+
+
 def correct_contest_name(crt_contest_name, new_contest_name):
     ses = load_ses()
 
@@ -167,7 +181,7 @@ def convert_to_task_name(task_number):
     if task_number < 0:
         return ''
     else:
-        return chr(task_number + ord('a'))
+        return chr(task_number + ord('a')).upper()
 
 
 def download_all_testcases(contest_name, redownload=False):
@@ -185,17 +199,21 @@ def download_all_testcases(contest_name, redownload=False):
             return False
         else:
             soup = BeautifulSoup(r.text, 'lxml')
-            hrefs = soup.find_all('a', href=re.compile("/contests/.*/tasks/.*"))
-            task_url_list = [urljoin(BASE_URL, href.get('href')) for href in hrefs]
+            anchors = soup.find_all('a',
+                                    href=re.compile("/contests/.*/tasks/.*"))
+            hrefs = [href.get('href') for href in anchors]
+            task_url_list = [urljoin(BASE_URL, href) for href in hrefs]
             task_url_list = list(dict.fromkeys(task_url_list))
 
-            secs = soup.find_all('td', string=re.compile(".*sec"))
-            time_limit_list = [float(sec.text.replace(" sec", "")) for sec in secs]
+            sec_tds = soup.find_all('td', string=re.compile(".*sec"))
+            secs = [sec.text for sec in sec_tds]
+            time_limit_list = [float(sec.replace(" sec", "")) for sec in secs]
 
             testcases_dict = dict()
             for (i, task_url) in enumerate(task_url_list):
-                testcases_dict[f"task {i}"] = download_testcases(task_url)
-                testcases_dict[f"task {i}"]['info']["time limit"] = time_limit_list[i]
+                testcases = download_testcases(task_url)
+                testcases['info']["time limit"] = time_limit_list[i]
+                testcases_dict[f"task {i}"] = testcases
 
             with open(testcases_path, 'w') as f:
                 json.dump(testcases_dict, f, indent=4)
@@ -226,9 +244,11 @@ def download_testcases(task_url):
 
         testcases = dict()
         testcases['info'] = dict()
-        testcases['info']["contains float"] = bool(soup.find(string=re.compile('小数')))
+        contains_float = bool(soup.find(string=re.compile('小数')))
+        testcases['info']["contains float"] = contains_float
 
-        for i, (testcase_input, testcase_output) in enumerate(zip(input_list, output_list)):
+        for i, (testcase_input, testcase_output)\
+                in enumerate(zip(input_list, output_list)):
             testcase = {"input": testcase_input, "output": testcase_output}
             testcases[f"testcase {i + 1}"] = testcase
 
@@ -250,7 +270,8 @@ def get_build_command():
     if ext == 'java':
         return ['javac', get_src_name()]
     elif ext == 'cpp':
-        return ['g++', get_src_name(), '-o', f"{get_src_name_without_ext()}.exe"]
+        return ['g++', get_src_name(), '-o',
+                f"{get_src_name_without_ext()}.exe"]
     elif ext == 'py':
         return ['python', '-m', 'py_compile', get_src_name()]
     else:
@@ -259,7 +280,9 @@ def get_build_command():
 
 def build():
     print("Building ...")
-    result = subprocess.run(get_build_command(), cwd=get_src_dir(), stderr=subprocess.PIPE)
+    result = subprocess.run(get_build_command(),
+                            cwd=get_src_dir(),
+                            stderr=subprocess.PIPE)
     error_message = result.stderr.decode('cp932')
     if len(error_message) > 0:
         print("Compilation error : ")
@@ -290,7 +313,27 @@ def format_output(output):
 
 
 def equals(response, answer):
-    return abs(response - answer) <= 1e-5 or abs((response  - answer) / answer) <= 1e-5
+    return (abs(response - answer) <= 1e-5
+            or abs((response - answer) / answer) <= 1e-5)
+
+
+def judge(contains_float, response, answer):
+    if answer == response:
+        return True
+
+    if not contains_float:
+        return False
+
+    if len(response) != len(answer):
+        return False
+    for line_res, line_ans in zip(response, answer):
+        if len(line_res) != len(line_ans):
+            return False
+        for element_res, element_ans in zip(line_res, line_ans):
+            if not equals(float(element_res), float(element_ans)):
+                return False
+
+    return True
 
 
 def test(testcases):
@@ -317,7 +360,11 @@ def test(testcases):
         with open(temp_path, 'r') as f:
             start_time = time.time()
             try:
-                result = subprocess.run(get_run_command(), cwd=get_src_dir(), stdin=f, stdout=subprocess.PIPE, timeout=time_limit * 2)
+                result = subprocess.run(get_run_command(),
+                                        cwd=get_src_dir(),
+                                        stdin=f,
+                                        stdout=subprocess.PIPE,
+                                        timeout=time_limit * 2)
             except subprocess.TimeoutExpired:
                 status = "TLE"
         os.remove(temp_path)
@@ -334,20 +381,8 @@ def test(testcases):
             output = result.stdout.decode()
             answer = format_output(testcase_output)
             response = format_output(output)
-            status = "AC" if answer == response else "WA"
 
-            if testcases["info"]["contains float"]:
-                status = "AC"
-                if len(response) != len(answer):
-                    status = "WA"
-                for line_response, line_answer in zip(response, answer):
-                    if len(line_response) != len(line_answer):
-                        status = "WA"
-                    for element_response, element_answer in zip(line_response, line_answer):
-                        if not equals(float(element_response), float(element_answer)):
-                            status = "WA"
-
-            if status == "AC":
+            if judge(testcases["info"]["contains float"], response, answer):
                 print(f"AC! ({run_time} ms)")
             else:
                 print(f"WA ({run_time} ms)")
@@ -362,6 +397,16 @@ def test(testcases):
     if not is_all_ac:
         print("----- WA -----")
     return is_all_ac
+
+
+def test_all(contest_name, task_number):
+    print(("Testing your source code for "
+          f"{contest_name}_{convert_to_task_name(task_number)} ..."))
+    if test(load_testcases(contest_name, task_number)):
+        print(" ! ! ! AC ! ! ! ")
+        print("Would you submit your source code? y/n")
+        if(input() == 'y'):
+            submit(contest_name, task_number)
 
 
 def load_src_code():
@@ -384,13 +429,13 @@ def get_language_id():
         return ''
 
 
-def get_task_screen_name(submit_url, task_number):
+def fetch_task_name(submit_url, task_number):
     ses = load_ses()
     r = ses.get(submit_url)
     soup = BeautifulSoup(r.text, 'lxml')
     select_task_list = soup.find('select', id="select-task").find_all('option')
-    task_screen_names = [select_task.get('value') for select_task in select_task_list]
-    return task_screen_names[task_number]
+    task_names = [select_task.get('value') for select_task in select_task_list]
+    return task_names[task_number]
 
 
 def submit(contest_name, task_number):
@@ -401,7 +446,7 @@ def submit(contest_name, task_number):
 
     src_code = load_src_code()
     language_id = get_language_id()
-    task_screen_name = get_task_screen_name(submit_url, task_number)
+    task_screen_name = fetch_task_name(submit_url, task_number)
 
     data = {
         "csrf_token": csrf_token,
@@ -434,7 +479,6 @@ if __name__ == "__main__":
 
     contest_name = ''
     task_number = -1
-    testcases = dict()
     command = []
     while True:
         print("Enter a command.")
@@ -448,14 +492,11 @@ if __name__ == "__main__":
         if re.fullmatch(r'src_path', command[0]):
             save_src_path(command[1] if len(command) >= 2 else '')
 
-        elif re.fullmatch(r'check|c', command[0]):
-            if len(command) == 1 or (len(command) >= 2 and re.fullmatch(r'src_path', command[1])):
-                print(f"Path to source code : {load_src_path()}")
-            if len(command) == 1 or (len(command) >= 2 and re.fullmatch(r'account', command[1])):
-                print(f"Account info : {load_account_info()}")
-
         elif re.fullmatch(r'login|l', command[0]):
             login(True)
+
+        elif re.fullmatch(r'check|c', command[0]):
+            check(command)
 
         elif re.fullmatch(r'download|d', command[0]):
             if len(command) >= 2:
@@ -465,7 +506,7 @@ if __name__ == "__main__":
         elif re.fullmatch(r'run|r', command[0]):
             run()
 
-        elif re.fullmatch(r'test|t', command[0]) or re.fullmatch(r'submit|s', command[0]):
+        elif re.fullmatch(r'test|t|submit', command[0]):
             new_task_number = task_number
             if len(command) >= 3:
                 contest_name = correct_contest_name(contest_name, command[1])
@@ -473,26 +514,21 @@ if __name__ == "__main__":
             elif len(command) == 2:
                 new_task_number = convert_to_task_number(command[1])
 
-            if download_all_testcases(contest_name):
-                new_testcases = load_testcases(contest_name, new_task_number)
-                if len(new_testcases) > 0:
-                    task_number = new_task_number
-                    testcases = new_testcases
-                if len(testcases) == 0:
-                    print("Testcases cannot be found.")
-                    continue
+            if not download_all_testcases(contest_name):
+                continue
 
-                if re.fullmatch(r'test|t', command[0]):
-                    print(f"Testing your source code for {contest_name}_{convert_to_task_name(task_number).upper()} ...")
-                    if test(testcases):
-                        print(" ! ! ! AC ! ! ! ")
-                        print("Would you submit your source code? y/n")
-                        ans = input()
-                        if(ans == 'y'):
-                            submit(contest_name, task_number)
+            new_testcases = load_testcases(contest_name, new_task_number)
+            if len(new_testcases) > 0:
+                task_number = new_task_number
+            if task_number < 0:
+                print("Testcases cannot be found.")
+                continue
 
-                elif re.fullmatch(r'submit', command[0]):
-                    submit(contest_name, task_number)
+            if re.fullmatch(r'test|t', command[0]):
+                test_all(contest_name, task_number)
+
+            elif re.fullmatch(r'submit', command[0]):
+                submit(contest_name, task_number)
 
         elif re.fullmatch(r'exit|e', command[0]):
             break
