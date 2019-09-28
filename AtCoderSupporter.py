@@ -67,8 +67,8 @@ def rcv_entered_account_info():
     username = input("Enter your username: ")
     password = getpass("Enter your password: ")
     account_info = {
-        "username": username,
-        "password": password
+        'username': username,
+        'password': password
     }
     return account_info
 
@@ -124,9 +124,9 @@ def login(reset_account=False):
     csrf_token = soup.find(attrs={'name': 'csrf_token'}).get('value')
 
     login_info = {
-        "csrf_token": csrf_token,
-        "username": account_info["username"],
-        "password": account_info["password"]
+        'csrf_token': csrf_token,
+        'username': account_info['username'],
+        'password': account_info['password']
     }
 
     result = ses.post(LOGIN_URL, data=login_info)
@@ -205,15 +205,15 @@ def download_all_testcases(contest_name, redownload=False):
             task_url_list = [urljoin(BASE_URL, href) for href in hrefs]
             task_url_list = list(dict.fromkeys(task_url_list))
 
-            sec_tds = soup.find_all('td', string=re.compile(".*sec"))
+            sec_tds = soup.find_all('td', string=re.compile(' sec'))
             secs = [sec.text for sec in sec_tds]
-            time_limit_list = [float(sec.replace(" sec", "")) for sec in secs]
+            time_limit_list = [float(sec.replace(' sec', '')) for sec in secs]
 
             testcases_dict = dict()
             for (i, task_url) in enumerate(task_url_list):
                 testcases = download_testcases(task_url)
-                testcases['info']["time limit"] = time_limit_list[i]
-                testcases_dict[f"task {i}"] = testcases
+                testcases['info']['time limit'] = time_limit_list[i]
+                testcases_dict[f'task {i}'] = testcases
 
             with open(testcases_path, 'w') as f:
                 json.dump(testcases_dict, f, indent=4)
@@ -244,11 +244,11 @@ def download_testcases(task_url):
 
         testcases = dict()
         testcases['info'] = dict()
-        paragraphs = soup.find_all("p")
+        paragraphs = soup.find_all('p')
         maximum_error_paragraph = [p for p in paragraphs if '誤差' in p.text]
         maximum_error = 0
         if maximum_error_paragraph:
-            variables = maximum_error_paragraph[0].find_all("var")
+            variables = maximum_error_paragraph[0].find_all('var')
             match = re.search(r'{.*?}', variables[-1].text)
             error_exponent = int(match.group()[1:-1])
             maximum_error = pow(10, error_exponent)
@@ -256,8 +256,8 @@ def download_testcases(task_url):
 
         for i, (testcase_input, testcase_output)\
                 in enumerate(zip(input_list, output_list)):
-            testcase = {"input": testcase_input, "output": testcase_output}
-            testcases[f"testcase {i + 1}"] = testcase
+            testcase = {'input': testcase_input, 'output': testcase_output}
+            testcases[f'testcase {i + 1}'] = testcase
 
         return testcases
 
@@ -267,7 +267,7 @@ def load_testcases(contest_name, task_number):
     try:
         with open(testcases_path, 'r') as f:
             testcases_dict = json.load(f)
-        return testcases_dict.get(f"task {task_number}", dict())
+        return testcases_dict.get(f'task {task_number}', dict())
     except OSError:
         return dict()
 
@@ -302,7 +302,7 @@ def get_run_command():
     if ext == 'java':
         return ['java', get_src_name_without_ext()]
     elif ext == 'cpp':
-        return [f"{get_src_name_without_ext()}.exe"]
+        return [f'{get_src_name_without_ext()}.exe']
     elif ext == 'py':
         return ['python', get_src_name()]
     else:
@@ -346,17 +346,17 @@ def test(testcases):
         return False
 
     is_all_ac = True
-    time_limit = testcases["info"]["time limit"]
+    time_limit = testcases['info']['time limit']
     for key, testcase in testcases.items():
-        if key == "info":
+        if key == 'info':
             continue
 
-        status = ""
+        status = ''
         print("-------------------------------")
-        print(f"{key} : ", end='')
+        print(f'{key} : ', end='')
 
-        testcase_input = testcase["input"]
-        testcase_output = testcase["output"]
+        testcase_input = testcase['input']
+        testcase_output = testcase['output']
 
         temp_path = "temp.txt"
         with open(temp_path, 'w') as f:
@@ -370,12 +370,12 @@ def test(testcases):
                                         stdout=subprocess.PIPE,
                                         timeout=time_limit * 2)
             except subprocess.TimeoutExpired:
-                status = "TLE"
+                status = 'TLE'
         os.remove(temp_path)
 
         run_time = round((time.time() - start_time) * 1000)
 
-        if status == "TLE":
+        if status == 'TLE':
             print("TLE")
             is_all_ac = False
         elif run_time >= time_limit * 1000:
@@ -386,7 +386,7 @@ def test(testcases):
             answer = format_output(testcase_output)
             response = format_output(output)
 
-            if judge(response, answer, testcases["info"]["maximum error"]):
+            if judge(response, answer, testcases['info']['maximum error']):
                 print(f"AC! ({run_time} ms)")
             else:
                 print(f"WA ({run_time} ms)")
@@ -437,7 +437,7 @@ def fetch_task_name(submit_url, task_number):
     ses = load_ses()
     r = ses.get(submit_url)
     soup = BeautifulSoup(r.text, 'lxml')
-    select_task_list = soup.find('select', id="select-task").find_all('option')
+    select_task_list = soup.find('select', id='select-task').find_all('option')
     task_names = [select_task.get('value') for select_task in select_task_list]
     return task_names[task_number]
 
@@ -453,10 +453,10 @@ def submit(contest_name, task_number):
     task_screen_name = fetch_task_name(submit_url, task_number)
 
     data = {
-        "csrf_token": csrf_token,
-        "data.LanguageId": language_id,
-        "data.TaskScreenName": task_screen_name,
-        "sourceCode": src_code
+        'csrf_token': csrf_token,
+        'data.LanguageId': language_id,
+        'data.TaskScreenName': task_screen_name,
+        'sourceCode': src_code
     }
 
     result = ses.post(submit_url, data)
