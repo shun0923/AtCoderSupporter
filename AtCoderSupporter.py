@@ -287,7 +287,7 @@ def build():
                             cwd=get_src_dir(),
                             stderr=subprocess.PIPE)
     error_message = result.stderr.decode('cp932')
-    if len(error_message) > 0:
+    if error_message:
         print("Compilation error : ")
         print(error_message)
     return not error_message
@@ -484,9 +484,9 @@ if __name__ == "__main__":
         print("Enter a command.")
         tmp_command = input().split()
 
-        if len(command) == 0 and len(tmp_command) == 0:
+        if not command and not tmp_command:
             continue
-        if len(tmp_command) > 0:
+        if tmp_command:
             command = tmp_command
 
         if re.fullmatch(r'src_path', command[0]):
@@ -518,7 +518,7 @@ if __name__ == "__main__":
                 continue
 
             new_testcases = load_testcases(contest_name, new_task_number)
-            if len(new_testcases) > 0:
+            if new_testcases:
                 task_number = new_task_number
             if task_number < 0:
                 print("Testcases cannot be found.")
