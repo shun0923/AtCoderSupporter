@@ -244,8 +244,15 @@ def download_testcases(task_url):
 
         testcases = dict()
         testcases['info'] = dict()
-        contains_float = bool(soup.find(string=re.compile('小数')))
-        testcases['info']['contains float'] = contains_float
+        paragraphs = soup.find_all('p')
+        maximum_error_paragraph = [p for p in paragraphs if '誤差' in p.text]
+        maximum_error = 0
+        if maximum_error_paragraph:
+            variables = maximum_error_paragraph[0].find_all('var')
+            match = re.search(r'{.*?}', variables[-1].text)
+            error_exponent = int(match.group()[1:-1])
+            maximum_error = pow(10, error_exponent)
+        testcases['info']["maximum error"] = maximum_error
 
         for i, (testcase_input, testcase_output)\
                 in enumerate(zip(input_list, output_list)):
@@ -312,25 +319,22 @@ def format_output(output):
     return [line.strip().split() for line in output.splitlines() if line]
 
 
-def equals(response, answer):
-    return (abs(response - answer) <= 1e-5
-            or abs((response - answer) / answer) <= 1e-5)
+def equals(response, answer, maximum_error):
+    return (abs(response - answer) <= maximum_error
+            or abs((response - answer) / answer) <= maximum_error)
 
 
-def judge(contains_float, response, answer):
+def judge(response, answer, maximum_error):
     if answer == response:
         return True
-
-    if not contains_float:
-        return False
 
     if len(response) != len(answer):
         return False
     for line_res, line_ans in zip(response, answer):
         if len(line_res) != len(line_ans):
             return False
-        for element_res, element_ans in zip(line_res, line_ans):
-            if not equals(float(element_res), float(element_ans)):
+        for elem_res, elem_ans in zip(line_res, line_ans):
+            if not equals(float(elem_res), float(elem_ans), maximum_error):
                 return False
 
     return True
@@ -382,7 +386,7 @@ def test(testcases):
             answer = format_output(testcase_output)
             response = format_output(output)
 
-            if judge(testcases['info']['contains float'], response, answer):
+            if judge(response, answer, testcases['info']['maximum error']):
                 print(f"AC! ({run_time} ms)")
             else:
                 print(f"WA ({run_time} ms)")
