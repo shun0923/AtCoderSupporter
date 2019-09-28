@@ -11,17 +11,13 @@ from getpass import getpass
 import time
 
 SAVE_DIR = "./save"
-ACCOUNT_JSON_PATH = "./save/account.json"
-SRC_PATH_TXT_PATH = "./save/src_path.txt"
-SESSION_PICKLE_PATH = "./save/session.pickle"
-TESTCASES_DIR = "./save/testcases"
+ACCOUNT_JSON_PATH = os.path.join(SAVE_DIR, "account.json")
+SRC_PATH_TXT_PATH = os.path.join(SAVE_DIR, "src_path.txt")
+SESSION_PICKLE_PATH = os.path.join(SAVE_DIR, "session.pickle")
+TESTCASES_DIR = os.path.join(SAVE_DIR, "testcases")
 
 BASE_URL = "https://atcoder.jp/"
 LOGIN_URL = urljoin(BASE_URL, "login")
-
-
-def extract_name(path):
-    return path.split('/')[-1]
 
 
 def save_src_path(src_path=''):
@@ -32,7 +28,7 @@ def save_src_path(src_path=''):
         with open(SRC_PATH_TXT_PATH, 'w') as f:
             f.write(src_path)
         print("Successfully saved a path to source code in "
-              f"{extract_name(SRC_PATH_TXT_PATH)}.")
+              f"{os.path.basename(SRC_PATH_TXT_PATH)}.")
     else:
         print("The path is invalid ...")
         save_src_path()
@@ -48,19 +44,19 @@ def load_src_path():
 
 
 def get_src_dir():
-    return load_src_path().rsplit('/', 1)[0]
+    return os.path.dirname(load_src_path())
 
 
 def get_src_name():
-    return extract_name(load_src_path())
+    return os.path.basename(load_src_path())
 
 
 def get_src_name_without_ext():
-    return get_src_name().split('.')[0]
+    return os.path.splitext(get_src_name())[0]
 
 
 def get_src_ext():
-    return get_src_name().split('.')[-1]
+    return os.path.splitext(load_src_path())[-1]
 
 
 def rcv_entered_account_info():
@@ -76,7 +72,7 @@ def rcv_entered_account_info():
 def save_account_info(account_info):
     with open(ACCOUNT_JSON_PATH, 'w') as f:
         json.dump(account_info, f, indent=4)
-    print(f"Successfully saved in {extract_name(ACCOUNT_JSON_PATH)}.")
+    print(f"Successfully saved in {os.path.basename(ACCOUNT_JSON_PATH)}.")
 
 
 def load_account_info():
@@ -200,12 +196,12 @@ def download_all_testcases(contest_name, redownload=False):
         else:
             soup = BeautifulSoup(r.text, 'lxml')
             anchors = soup.find_all('a',
-                                    href=re.compile("/contests/.*/tasks/.*"))
+                                    href=re.compile(r"/contests/.*/tasks/.*"))
             hrefs = [href.get('href') for href in anchors]
             task_url_list = [urljoin(BASE_URL, href) for href in hrefs]
             task_url_list = list(dict.fromkeys(task_url_list))
 
-            sec_tds = soup.find_all('td', string=re.compile(' sec'))
+            sec_tds = soup.find_all('td', string=re.compile(r' sec'))
             secs = [sec.text for sec in sec_tds]
             time_limit_list = [float(sec.replace(' sec', '')) for sec in secs]
 
@@ -223,7 +219,7 @@ def download_all_testcases(contest_name, redownload=False):
 
 
 def download_testcases(task_url):
-    task_full_name = extract_name(task_url)
+    task_full_name = os.path.basename(task_url)
     print(f"Downloading testcases for {task_full_name} ...")
 
     ses = load_ses()
@@ -274,12 +270,12 @@ def load_testcases(contest_name, task_number):
 
 def get_build_command():
     ext = get_src_ext()
-    if ext == 'java':
+    if ext == '.java':
         return ['javac', get_src_name()]
-    elif ext == 'cpp':
+    elif ext == '.cpp':
         return ['g++', get_src_name(), '-o',
                 f"{get_src_name_without_ext()}.exe"]
-    elif ext == 'py':
+    elif ext == '.py':
         return ['python', '-m', 'py_compile', get_src_name()]
     else:
         return []
@@ -291,7 +287,7 @@ def build():
                             cwd=get_src_dir(),
                             stderr=subprocess.PIPE)
     error_message = result.stderr.decode('cp932')
-    if len(error_message) > 0:
+    if error_message:
         print("Compilation error : ")
         print(error_message)
     return not error_message
@@ -299,11 +295,11 @@ def build():
 
 def get_run_command():
     ext = get_src_ext()
-    if ext == 'java':
+    if ext == '.java':
         return ['java', get_src_name_without_ext()]
-    elif ext == 'cpp':
+    elif ext == '.cpp':
         return [f'{get_src_name_without_ext()}.exe']
-    elif ext == 'py':
+    elif ext == '.py':
         return ['python', get_src_name()]
     else:
         return []
@@ -423,11 +419,11 @@ def load_src_code():
 
 def get_language_id():
     ext = get_src_ext()
-    if ext == 'java':
+    if ext == '.java':
         return '3016'
-    elif ext == 'cpp':
+    elif ext == '.cpp':
         return '3003'
-    elif ext == 'py':
+    elif ext == '.py':
         return '3023'
     else:
         return ''
@@ -488,9 +484,9 @@ if __name__ == "__main__":
         print("Enter a command.")
         tmp_command = input().split()
 
-        if len(command) == 0 and len(tmp_command) == 0:
+        if not command and not tmp_command:
             continue
-        if len(tmp_command) > 0:
+        if tmp_command:
             command = tmp_command
 
         if re.fullmatch(r'src_path', command[0]):
@@ -522,7 +518,7 @@ if __name__ == "__main__":
                 continue
 
             new_testcases = load_testcases(contest_name, new_task_number)
-            if len(new_testcases) > 0:
+            if new_testcases:
                 task_number = new_task_number
             if task_number < 0:
                 print("Testcases cannot be found.")
