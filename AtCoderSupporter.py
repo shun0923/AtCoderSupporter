@@ -173,11 +173,34 @@ def convert_to_task_number(task_name):
         return -1
 
 
+def convert_to_testcase_number(command):
+    return int(command) if command.isdecimal() else None
+
+
 def convert_to_task_name(task_number):
     if task_number < 0:
         return ''
     else:
         return chr(task_number + ord('a')).upper()
+
+
+def update_testcase(command, contest_name, task_number, testcase_number):
+    if len(command) >= 4:
+        contest_name = correct_contest_name(contest_name, command[1])
+        task_number = convert_to_task_number(command[2])
+        testcase_number = convert_to_testcase_number(command[3])
+    if len(command) == 3:
+        if len(command[1]) == 1:
+            task_number = convert_to_task_number(command[1])
+            testcase_number = convert_to_testcase_number(command[2])
+        else:
+            contest_name = correct_contest_name(contest_name, command[1])
+            task_number = convert_to_task_number(command[2])
+            testcase_number = None
+    elif len(command) == 2:
+        task_number = convert_to_task_number(command[1])
+        testcase_number = None
+    return contest_name, task_number, testcase_number
 
 
 def download_all_testcases(contest_name, redownload=False):
@@ -352,15 +375,23 @@ def judge(response, answer, maximum_error):
     return True
 
 
-def test(testcases):
+def test(testcases, testcase_number):
     if not build():
         print("----- CE -----")
         return False
 
     is_all_ac = True
     time_limit = testcases['info']['time limit']
+
+    if (not testcase_number
+       or f'testcase {testcase_number}' not in testcases.keys()):
+        testcase_number = None
+
     for key, testcase in testcases.items():
         if key == 'info':
+            continue
+        if testcase_number and key != f'testcase {testcase_number}':
+            is_all_ac = False
             continue
 
         status = ''
@@ -421,10 +452,10 @@ def test(testcases):
     return is_all_ac
 
 
-def test_all(contest_name, task_number):
+def test_all(contest_name, task_number, testcase_number):
     print(("Testing your source code for "
           f"{contest_name}_{convert_to_task_name(task_number)} ..."))
-    if test(load_testcases(contest_name, task_number)):
+    if test(load_testcases(contest_name, task_number), testcase_number):
         print(" ! ! ! AC ! ! ! ")
         print("Would you submit your source code? y/n")
         if(input() == 'y'):
@@ -501,6 +532,7 @@ if __name__ == "__main__":
 
     contest_name = ''
     task_number = -1
+    testcase_number = None
     command = []
     while True:
         print("Enter a command.")
@@ -529,12 +561,9 @@ if __name__ == "__main__":
             run()
 
         elif re.fullmatch(r'test|t|submit', command[0]):
-            new_task_number = task_number
-            if len(command) >= 3:
-                contest_name = correct_contest_name(contest_name, command[1])
-                new_task_number = convert_to_task_number(command[2])
-            elif len(command) == 2:
-                new_task_number = convert_to_task_number(command[1])
+            contest_name, new_task_number, testcase_number = \
+                update_testcase(command,
+                                contest_name, task_number, testcase_number)
 
             if not download_all_testcases(contest_name):
                 continue
@@ -547,7 +576,7 @@ if __name__ == "__main__":
                 continue
 
             if re.fullmatch(r'test|t', command[0]):
-                test_all(contest_name, task_number)
+                test_all(contest_name, task_number, testcase_number)
 
             elif re.fullmatch(r'submit', command[0]):
                 submit(contest_name, task_number)
