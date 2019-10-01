@@ -356,7 +356,8 @@ def format_output(output):
 
 def equals(response, answer, maximum_error):
     return (abs(response - answer) <= maximum_error
-            or abs((response - answer) / answer) <= maximum_error)
+            or (answer != 0
+                and abs((response - answer) / answer) <= maximum_error))
 
 
 def judge(response, answer, maximum_error):
@@ -369,8 +370,12 @@ def judge(response, answer, maximum_error):
         if len(line_res) != len(line_ans):
             return False
         for elem_res, elem_ans in zip(line_res, line_ans):
-            if not equals(float(elem_res), float(elem_ans), maximum_error):
-                return False
+            if elem_res.isdecimal() and elem_ans.isdecimal():
+                if not equals(float(elem_res), float(elem_ans), maximum_error):
+                    return False
+            else:
+                if elem_res != elem_ans:
+                    return False
 
     return True
 
