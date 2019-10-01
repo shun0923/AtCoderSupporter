@@ -427,30 +427,31 @@ def test(testcases, testcase_number):
         if status == 'TLE':
             print("TLE")
             is_all_ac = False
-        elif run_time >= time_limit * 1000:
-            print(f"TLE ({run_time} ms)")
-            is_all_ac = False
         else:
-            output = result.stdout.decode()
-            answer = format_output(testcase_output)
-            response = format_output(output)
-
-            if judge(response, answer, testcases['info']['maximum error']):
-                print(f"AC! ({run_time} ms)")
-            else:
-                print(f"WA ({run_time} ms)")
-                print("----input-----")
-                print(testcase_input)
-                print("----result----")
-                print(output)
-                print("---expected---")
-                print(testcase_output)
+            if run_time >= time_limit * 1000:
+                print(f"TLE ({run_time} ms)")
                 is_all_ac = False
+            else:
+                output = result.stdout.decode()
+                answer = format_output(testcase_output)
+                response = format_output(output)
 
-        error_message = result.stderr.decode('cp932')
-        if error_message:
-            print("ERROR : ")
-            print(omit_error_message(error_message))
+                if judge(response, answer, testcases['info']['maximum error']):
+                    print(f"AC! ({run_time} ms)")
+                else:
+                    print(f"WA ({run_time} ms)")
+                    print("----input-----")
+                    print(testcase_input)
+                    print("----result----")
+                    print(output)
+                    print("---expected---")
+                    print(testcase_output)
+                    is_all_ac = False
+
+            error_message = result.stderr.decode('cp932')
+            if error_message:
+                print("ERROR : ")
+                print(omit_error_message(error_message))
 
     if not is_all_ac:
         print("----- WA -----")
