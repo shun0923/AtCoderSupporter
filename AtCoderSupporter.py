@@ -354,6 +354,15 @@ def format_output(output):
     return [line.strip().split() for line in output.splitlines() if line]
 
 
+def is_float(x):
+    try:
+        float(x)
+    except ValueError:
+        return False
+    else:
+        return True
+
+
 def equals(response, answer, maximum_error):
     return (abs(response - answer) <= maximum_error
             or (answer != 0
@@ -370,7 +379,7 @@ def judge(response, answer, maximum_error):
         if len(line_res) != len(line_ans):
             return False
         for elem_res, elem_ans in zip(line_res, line_ans):
-            if elem_res.isdecimal() and elem_ans.isdecimal():
+            if is_float(elem_res) and is_float(elem_ans):
                 if not equals(float(elem_res), float(elem_ans), maximum_error):
                     return False
             else:
