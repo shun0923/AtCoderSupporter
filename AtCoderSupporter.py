@@ -263,7 +263,7 @@ def download_testcases(task_url):
 
         testcases = dict()
         testcases['info'] = dict()
-        paragraphs = soup.find_all('p')
+        paragraphs = soup.find_all(re.compile("p|section"))
         maximum_error_paragraph = [p for p in paragraphs if '誤差' in p.text]
         maximum_error = 0
         if maximum_error_paragraph:
