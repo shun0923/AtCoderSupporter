@@ -277,8 +277,17 @@ def download_testcases(task_url):
             variables = maximum_error_paragraph[0].find_all('var')
             matches = [re.search(r'10\^{.*?}', var.text) for var in variables]
             matches = [match for match in matches if match]
-            error_exponent = int(matches[-1].group()[5:-1]) * (-1)
-            maximum_error = pow(10, error_exponent)
+            if matches:
+                error_exponent = int(matches[-1].group()[5:-1]) * (-1)
+                maximum_error = pow(10, error_exponent)
+            else:
+                for var in variables:
+                    try:
+                        var = float(var.text)
+                        if not var.is_integer():
+                            maximum_error = var
+                    except ValueError:
+                        pass
         testcases['info']["maximum error"] = maximum_error
 
         for i, (testcase_input, testcase_output)\
