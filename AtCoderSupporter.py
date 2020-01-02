@@ -320,7 +320,7 @@ def build():
 def get_run_command():
     ext = get_src_ext()
     if ext == '.java':
-        return ['java', get_src_name_without_ext()]
+        return ['java', get_src_name_without_ext(), '-DEBUG']
     elif ext == '.cpp':
         return [f'{get_src_name_without_ext()}.exe']
     elif ext == '.py':
