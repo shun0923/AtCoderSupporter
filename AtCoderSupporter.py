@@ -566,55 +566,59 @@ if __name__ == "__main__":
     task_number = -1
     testcase_number = None
     command = []
-    while True:
-        print("Enter a command.")
-        tmp_command = input().split()
+    try:
+        while True:
+            print("Enter a command.")
+            tmp_command = input().split()
 
-        if not command and not tmp_command:
-            continue
-        if tmp_command:
-            command = tmp_command
-
-        if re.fullmatch(r'src_path', command[0]):
-            save_src_path(command[1] if len(command) >= 2 else '')
-
-        elif re.fullmatch(r'login|l', command[0]):
-            login(True)
-
-        elif re.fullmatch(r'check|c', command[0]):
-            check(command)
-
-        elif re.fullmatch(r'download|d', command[0]):
-            if len(command) >= 2:
-                contest_name = correct_contest_name(contest_name, command[1])
-            download_all_testcases(contest_name, True)
-
-        elif re.fullmatch(r'run|r', command[0]):
-            run()
-
-        elif re.fullmatch(r'test|t|submit', command[0]):
-            contest_name, new_task_number, testcase_number = \
-                update_testcase(command,
-                                contest_name, task_number, testcase_number)
-
-            if not download_all_testcases(contest_name):
+            if not command and not tmp_command:
                 continue
+            if tmp_command:
+                command = tmp_command
 
-            new_testcases = load_testcases(contest_name, new_task_number)
-            if new_testcases:
-                task_number = new_task_number
-            if task_number < 0:
-                print("Testcases cannot be found.")
-                continue
+            if re.fullmatch(r'src_path', command[0]):
+                save_src_path(command[1] if len(command) >= 2 else '')
 
-            if re.fullmatch(r'test|t', command[0]):
-                test_all(contest_name, task_number, testcase_number)
+            elif re.fullmatch(r'login|l', command[0]):
+                login(True)
 
-            elif re.fullmatch(r'submit', command[0]):
-                submit(contest_name, task_number)
+            elif re.fullmatch(r'check|c', command[0]):
+                check(command)
 
-        elif re.fullmatch(r'exit|e', command[0]):
-            break
+            elif re.fullmatch(r'download|d', command[0]):
+                if len(command) >= 2:
+                    contest_name = correct_contest_name(contest_name,
+                                                        command[1])
+                download_all_testcases(contest_name, True)
 
-        else:
-            contest_name = correct_contest_name(contest_name, command[0])
+            elif re.fullmatch(r'run|r', command[0]):
+                run()
+
+            elif re.fullmatch(r'test|t|submit', command[0]):
+                contest_name, new_task_number, testcase_number = \
+                    update_testcase(command,
+                                    contest_name, task_number, testcase_number)
+
+                if not download_all_testcases(contest_name):
+                    continue
+
+                new_testcases = load_testcases(contest_name, new_task_number)
+                if new_testcases:
+                    task_number = new_task_number
+                if task_number < 0:
+                    print("Testcases cannot be found.")
+                    continue
+
+                if re.fullmatch(r'test|t', command[0]):
+                    test_all(contest_name, task_number, testcase_number)
+
+                elif re.fullmatch(r'submit', command[0]):
+                    submit(contest_name, task_number)
+
+            elif re.fullmatch(r'exit|e', command[0]):
+                break
+
+            else:
+                contest_name = correct_contest_name(contest_name, command[0])
+    except KeyboardInterrupt:
+        pass
