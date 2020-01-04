@@ -9,6 +9,8 @@ import re
 import subprocess
 from getpass import getpass
 import time
+from termcolor import colored, cprint
+import colorama
 
 SAVE_DIR = "./save"
 ACCOUNT_JSON_PATH = os.path.join(SAVE_DIR, "account.json")
@@ -451,11 +453,12 @@ def test(testcases, testcase_number):
         run_time = round((time.time() - start_time) * 1000)
 
         if status == 'TLE':
-            print("TLE")
+            cprint("TLE", 'yellow')
             is_all_ac = False
         else:
             if run_time >= time_limit * 1000:
-                print(f"TLE ({run_time} ms)")
+                cprint("TLE", 'yellow', end='')
+                print(f" ({run_time} ms)")
                 is_all_ac = False
             else:
                 output = result.stdout.decode()
@@ -463,9 +466,11 @@ def test(testcases, testcase_number):
                 response = format_output(output)
 
                 if judge(response, answer, testcases['info']['maximum error']):
-                    print(f"AC! ({run_time} ms)")
+                    cprint("AC!", 'green', end='')
+                    print(f" ({run_time} ms)")
                 else:
-                    print(f"WA ({run_time} ms)")
+                    cprint("WA", 'yellow', end='')
+                    print(f" ({run_time} ms)")
                     print("----input-----")
                     print(testcase_input)
                     print("----result----")
@@ -480,7 +485,7 @@ def test(testcases, testcase_number):
                 print(omit_error_message(error_message))
 
     if not is_all_ac:
-        print("----- WA -----")
+        cprint(" ----- WA ----- \n", 'white', 'on_yellow')
     return is_all_ac
 
 
@@ -488,7 +493,7 @@ def test_all(contest_name, task_number, testcase_number):
     print(("Testing your source code for "
           f"{contest_name}_{convert_to_task_name(task_number)} ..."))
     if test(load_testcases(contest_name, task_number), testcase_number):
-        print(" ! ! ! AC ! ! ! ")
+        cprint(" ! ! ! AC ! ! ! \n", 'white', 'on_green')
         print("Would you submit your source code? y/n")
         if(input() == 'y'):
             submit(contest_name, task_number)
@@ -549,6 +554,8 @@ def submit(contest_name, task_number):
 
 
 if __name__ == "__main__":
+    colorama.init()
+
     print("--- AtCoder Supporter ---")
 
     if not os.path.exists(SAVE_DIR):
