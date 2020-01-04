@@ -9,7 +9,7 @@ import re
 import subprocess
 from getpass import getpass
 import time
-from termcolor import colored, cprint
+from termcolor import cprint
 import colorama
 
 SAVE_DIR = "./save"
