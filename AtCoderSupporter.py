@@ -9,7 +9,7 @@ import re
 import subprocess
 from getpass import getpass
 import time
-from termcolor import colored, cprint
+from termcolor import cprint
 import colorama
 
 SAVE_DIR = "./save"
@@ -284,12 +284,10 @@ def download_testcases(task_url):
                 maximum_error = pow(10, error_exponent)
             else:
                 for var in variables:
-                    try:
+                    if is_float(var.text):
                         var = float(var.text)
                         if not var.is_integer():
                             maximum_error = var
-                    except ValueError:
-                        pass
         testcases['info']["maximum error"] = maximum_error
 
         for i, (testcase_input, testcase_output)\
