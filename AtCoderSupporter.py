@@ -483,7 +483,8 @@ def test(testcases, testcase_number):
                 print(omit_error_message(error_message))
 
     if not is_all_ac:
-        cprint(" ----- WA ----- \n", 'white', 'on_yellow')
+        cprint(" ----- WA ----- ", 'white', 'on_yellow')
+        print()
     return is_all_ac
 
 
@@ -491,7 +492,8 @@ def test_all(contest_name, task_number, testcase_number):
     print(("Testing your source code for "
           f"{contest_name}_{convert_to_task_name(task_number)} ..."))
     if test(load_testcases(contest_name, task_number), testcase_number):
-        cprint(" ! ! ! AC ! ! ! \n", 'white', 'on_green')
+        cprint(" ! ! ! AC ! ! ! ", 'white', 'on_green')
+        print()
         print("Would you submit your source code? y/n")
         if(input() == 'y'):
             submit(contest_name, task_number)
