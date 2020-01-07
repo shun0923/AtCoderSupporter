@@ -4,7 +4,7 @@
 
 ## セットアップ・起動
 
-1. `pip install lxml`を実行
+1. `pip install lxml termcolor`を実行
 2. [`AtCoderSupporter.py`](https://raw.githubusercontent.com/shun0923/AtCoderSupporter/master/AtCoderSupporter.py)をダウンロード
 3. `python AtCoderSupporter.py`を実行
 
