@@ -313,8 +313,8 @@ def get_build_command():
     if ext == '.java':
         return ['javac', get_src_name()]
     elif ext == '.cpp':
-        return ['g++', get_src_name(), '-o',
-                f"{get_src_name_without_ext()}.exe"]
+        return ['g++', get_src_name(), '-Wall', '-std=gnu++14',
+                '-o', f"{get_src_name_without_ext()}.exe"]
     elif ext == '.py':
         return ['python', '-m', 'py_compile', get_src_name()]
     else:
