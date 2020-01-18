@@ -350,21 +350,25 @@ def omit_error_message(error_message):
             else error_message[:1000] + " ...")
 
 
-def run():
-    if build():
+def run(without_building, separate_output, separate_error):
+    if without_building or build():
         print("Running!")
+        stdout = subprocess.PIPE if separate_output else None
+        stderr = subprocess.PIPE if separate_error else None
         result = subprocess.run(get_run_command(),
                                 cwd=get_src_dir(),
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        output = result.stdout.decode('cp932')
-        if output:
-            print("OUTPUT : ")
-            print(output)
-        error_message = result.stderr.decode('cp932')
-        if error_message:
-            print("ERROR : ")
-            print(omit_error_message(error_message))
+                                stdout=stdout,
+                                stderr=stderr)
+        if stdout:
+            output = result.stdout.decode('cp932')
+            if output:
+                print("OUTPUT : ")
+                print(output)
+        if stderr:
+            error_message = result.stderr.decode('cp932')
+            if error_message:
+                print("ERROR : ")
+                print(omit_error_message(error_message))
 
 
 def format_output(output):
@@ -599,7 +603,9 @@ if __name__ == "__main__":
                 download_all_testcases(contest_name, True)
 
             elif re.fullmatch(r'run|r', command[0]):
-                run()
+                run('-nb' in command,
+                    '-no' not in command,
+                    '-ne' not in command)
 
             elif re.fullmatch(r'test|t|submit', command[0]):
                 contest_name, new_task_number, testcase_number = \
