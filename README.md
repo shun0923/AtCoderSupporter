@@ -14,9 +14,9 @@
 
 |コマンド（省略形）|内容|
 |-------|----|
-|test (t) [contest_name] [task_number]|ビルドして入出力例でテスト、全て通ればそのまま提出も可能　　※contest_nameのみは不可|
+|test (t) [contest_name] [task_number]|ビルドして入出力例でテスト、全て通ればそのまま提出も可能<br>※contest_nameのみは不可|
 |submit|テストせずに提出|
-|run (r)|ビルドして実行|
+|run (r) [-nb] [-no] [-ne]|ビルドして実行<br>-nb:ビルドせず実行<br>-no:OUTPUTを別表示しない<br>-ne:ERRORを別表示しない|
 |exit (e)|終了|
 |[contest_name]|コンテスト名の設定（前回のコマンドと同じなら省略可）|
 
