@@ -14,7 +14,7 @@
 
 |コマンド（省略形）|内容|
 |-------|----|
-|test (t) [contest_name] [task_number]|ビルドして入出力例でテスト、全て通ればそのまま提出も可能<br>※contest_nameのみは不可|
+|test (t) [contest_name] [task_number] [testcase_number]|ビルドして入出力例でテスト、全て通ればそのまま提出も可能<br>testcase_numberを指定した場合、特定のテストケースのみテスト<br>※contest_nameのみ、testcase_numberのみは不可|
 |submit|テストせずに提出|
 |run (r) [-nb] [-no] [-ne]|ビルドして実行<br>-nb:ビルドせず実行<br>-no:OUTPUTを別表示しない<br>-ne:ERRORを別表示しない|
 |exit (e)|終了|
@@ -22,7 +22,7 @@
 
 ※1 [contest_name]や[task_number]などのオプションは、前回のコマンドと同じなら省略できます。
 
-※2 [contest_name]とは問題URLに含まれる`https://atcoder.jp/contests/〇〇`の部分、[task_number]はアルファベットまたは数字(1-indexed)で指定してください。
+※2 [contest_name]とは問題URLに含まれる`https://atcoder.jp/contests/〇〇`の部分、[task_number]はアルファベットまたは数字(1-indexed)、[testcase_number]は数字(1-indexed)で指定してください。
 基本的に企業コンにも対応しています。
 
 ### その他のコマンド
