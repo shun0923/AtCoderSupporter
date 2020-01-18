@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 import os
+import random
+import string
+from Crypto.Cipher import AES
+import base64
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
@@ -13,6 +17,7 @@ from termcolor import cprint
 import colorama
 
 SAVE_DIR = "./save"
+KEY_PATH = os.path.join(SAVE_DIR, "key.txt")
 ACCOUNT_JSON_PATH = os.path.join(SAVE_DIR, "account.json")
 SRC_PATH_TXT_PATH = os.path.join(SAVE_DIR, "src_path.txt")
 SESSION_PICKLE_PATH = os.path.join(SAVE_DIR, "session.pickle")
@@ -20,6 +25,45 @@ TESTCASES_DIR = os.path.join(SAVE_DIR, "testcases")
 
 BASE_URL = "https://atcoder.jp/"
 LOGIN_URL = urljoin(BASE_URL, "login")
+
+key_size = 32
+iv = '0123456789abcdef'.encode('utf-8')
+
+
+def randomname(n):
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=n))
+
+
+def hide(code):
+    return '*' * len(decrypt(code))
+
+
+def save_key():
+    key = randomname(key_size)
+    with open(KEY_PATH, 'w') as f:
+        f.write(key)
+
+
+def load_key():
+    try:
+        with open(KEY_PATH, 'r') as f:
+            key = f.read().zfill(key_size)
+            key = key[:key_size].encode('utf-8')
+            return key
+    except OSError:
+        save_key()
+        return load_key()
+
+
+def encrypt(data):
+    aes = AES.new(load_key(), AES.MODE_CFB, iv)
+    code = aes.encrypt(data.encode('utf-8'))
+    return base64.b64encode(code).decode('utf-8')
+
+
+def decrypt(data):
+    aes = AES.new(load_key(), AES.MODE_CFB, iv)
+    return aes.decrypt(base64.b64decode(data)).decode('utf-8')
 
 
 def save_src_path(src_path=''):
@@ -66,7 +110,7 @@ def rcv_entered_account_info():
     password = getpass("Enter your password: ")
     account_info = {
         'username': username,
-        'password': password
+        'password': encrypt(password)
     }
     return account_info
 
@@ -124,7 +168,7 @@ def login(reset_account=False):
     login_info = {
         'csrf_token': csrf_token,
         'username': account_info['username'],
-        'password': account_info['password']
+        'password': decrypt(account_info['password'])
     }
 
     result = ses.post(LOGIN_URL, data=login_info)
@@ -150,7 +194,9 @@ def check(command):
     if check_dict['src_path']:
         print(f"Path to source code : {load_src_path()}")
     if check_dict['account']:
-        print(f"Account info : {load_account_info()}")
+        account_info = load_account_info()
+        account_info['password'] = hide(account_info['password'])
+        print(f"Account info : {account_info}")
 
 
 def correct_contest_name(crt_contest_name, new_contest_name):
