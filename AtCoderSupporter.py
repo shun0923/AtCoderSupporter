@@ -451,12 +451,12 @@ def judge(response, answer, maximum_error):
     for line_res, line_ans in zip(response, answer):
         if len(line_res) != len(line_ans):
             return False
-        for elem_res, elem_ans in zip(line_res, line_ans):
-            if is_float(elem_res) and is_float(elem_ans):
-                if not equals(float(elem_res), float(elem_ans), maximum_error):
+        for ele_res, ele_ans in zip(line_res, line_ans):
+            if maximum_error != 0 and is_float(ele_res) and is_float(ele_ans):
+                if not equals(float(ele_res), float(ele_res), maximum_error):
                     return False
             else:
-                if elem_res != elem_ans:
+                if ele_res != ele_ans:
                     return False
 
     return True
