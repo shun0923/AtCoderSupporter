@@ -453,7 +453,7 @@ def judge(response, answer, maximum_error):
             return False
         for ele_res, ele_ans in zip(line_res, line_ans):
             if maximum_error != 0 and is_float(ele_res) and is_float(ele_ans):
-                if not equals(float(ele_res), float(ele_res), maximum_error):
+                if not equals(float(ele_res), float(ele_ans), maximum_error):
                     return False
             else:
                 if ele_res != ele_ans:
