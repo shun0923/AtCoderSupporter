@@ -310,11 +310,11 @@ def download_testcases(task_url):
         for div in divs:
             h = div.find(re.compile("h[0-9]"))
             pre = div.find('pre')
-            if h and pre and pre.string:
+            if h and pre:
                 if h.string.startswith('入力例'):
-                    input_list.append(pre.string)
+                    input_list.append(pre.string if pre.string else "")
                 if h.string.startswith('出力例'):
-                    output_list.append(pre.string)
+                    output_list.append(pre.string if pre.string else "")
 
         testcases = dict()
         testcases['info'] = dict()
