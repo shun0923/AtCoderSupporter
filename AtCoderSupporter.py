@@ -303,7 +303,7 @@ def download_testcases(task_url):
         soup = BeautifulSoup(r.text, 'lxml')
         soup_ja = soup.find('span', class_='lang-ja')
         soup = soup_ja if soup_ja else soup
-        divs = soup.find_all('div')
+        divs = soup.find_all(re.compile("div|section"))
 
         input_list = []
         output_list = []
