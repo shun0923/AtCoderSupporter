@@ -302,14 +302,13 @@ def download_testcases(task_url):
     else:
         soup = BeautifulSoup(r.text, 'lxml')
         soup_ja = soup.find('span', class_='lang-ja')
-        soup_div = soup.find('div', id='task-statement')
-        soup = soup_ja if soup_ja else soup_div if soup_div else soup
-        divs = soup.find_all(re.compile("div|section"), recursive=False)
+        soup = soup_ja if soup_ja else soup
+        divs = soup.find_all(re.compile("div|section"))
 
         input_list = []
         output_list = []
         for div in divs:
-            h = div.find(re.compile("h[0-9]"))
+            h = div.find(re.compile("h[0-9]"), recursive=False)
             pre = div.find('pre')
             if h and pre:
                 if h.string.startswith('入力例'):
