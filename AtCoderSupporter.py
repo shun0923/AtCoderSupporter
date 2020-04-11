@@ -311,9 +311,9 @@ def download_testcases(task_url):
             h = div.find(re.compile("h[0-9]"), recursive=False)
             pre = div.find('pre')
             if h and pre:
-                if h.string.startswith('入力例'):
+                if '入力例' in h.string:
                     input_list.append(pre.string if pre.string else "")
-                if h.string.startswith('出力例'):
+                if '出力例' in h.string:
                     output_list.append(pre.string if pre.string else "")
 
         testcases = dict()
