@@ -410,7 +410,8 @@ def run(without_building, separate_output, separate_error):
         result = subprocess.run(get_run_command(),
                                 cwd=get_src_dir(),
                                 stdout=stdout,
-                                stderr=stderr)
+                                stderr=stderr,
+                                shell=True)
         if stdout:
             output = result.stdout.decode('cp932')
             if output:
