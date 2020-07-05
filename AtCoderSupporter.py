@@ -566,11 +566,11 @@ def load_src_code():
 def get_language_id():
     ext = get_src_ext()
     if ext == '.java':
-        return '3016'
+        return '4005'
     elif ext == '.cpp':
-        return '3003'
+        return '4003'
     elif ext == '.py':
-        return '3023'
+        return '4006'
     else:
         return ''
 
