@@ -500,7 +500,8 @@ def test(testcases, testcase_number):
                                         stdin=f,
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE,
-                                        timeout=time_limit * 2)
+                                        timeout=time_limit * 2,
+                                        shell=True)
             except subprocess.TimeoutExpired:
                 status = 'TLE'
         os.remove(temp_path)
