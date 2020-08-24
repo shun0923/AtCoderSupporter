@@ -310,7 +310,7 @@ def download_testcases(task_url):
         for div in divs:
             h = div.find(re.compile("h[0-9]"), recursive=False)
             pre = div.find('pre')
-            if h and pre:
+            if h and pre and h.string:
                 if '入力例' in h.string:
                     input_list.append(pre.string if pre.string else "")
                 if '出力例' in h.string:
