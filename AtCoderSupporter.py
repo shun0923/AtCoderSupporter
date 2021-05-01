@@ -215,10 +215,13 @@ def correct_contest_name(crt_contest_name, new_contest_name):
 def convert_to_task_number(task_name):
     if task_name.isdecimal():
         return int(task_name) - 1
-    elif len(task_name) == 1:
-        return ord(task_name.lower()) - ord('a')
     else:
-        return -1
+        task_number = 0
+        for ele in task_name:
+            task_number *= 26
+            task_number += ord(ele.lower()) - ord('a')
+        task_number += (pow(26, len(task_name) - 1) - 1) * 26 // 25
+        return task_number
 
 
 def convert_to_testcase_number(command):
@@ -229,7 +232,19 @@ def convert_to_task_name(task_number):
     if task_number < 0:
         return ''
     else:
-        return chr(task_number + ord('a')).upper()
+        task_name = ''
+        length = 1
+        minus = 26
+        while True:
+            if task_number < minus:
+                break
+            task_number -= minus
+            length += 1
+            minus *= 26
+        for i in range(length):
+            task_name = chr(task_number % 26 + ord('a')).upper() + task_name
+            task_number //= 26
+        return task_name
 
 
 def update_testcase(command, contest_name, task_number, testcase_number):
@@ -238,7 +253,7 @@ def update_testcase(command, contest_name, task_number, testcase_number):
         task_number = convert_to_task_number(command[2])
         testcase_number = convert_to_testcase_number(command[3])
     if len(command) == 3:
-        if len(command[1]) == 1:
+        if len(command[1]) <= 3:
             task_number = convert_to_task_number(command[1])
             testcase_number = convert_to_testcase_number(command[2])
         else:
